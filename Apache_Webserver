@@ -1,0 +1,68 @@
+#!/bin/bash
+
+### This script will print server details & Configure Apache webserver
+Header()
+{
+   echo "====================================="
+   echo " $1 "
+   echo "====================================="
+}
+
+Check_os_type()
+{
+    Header "Checking OS Type"
+      OS=$(cat /etc/os-release | grep -w NAME | awk -F= '{print $2}' | tr -d '"')
+    if [ os==Linux ]
+    then 
+      echo "OS Type is Linux"
+      pkg_manager=yum
+    elif [ os==Ubuntu ]
+    then 
+      echo "OS Type is Ubuntu"
+      pkg_manager=apt
+    fi
+}
+
+check_status()
+{
+    if [ $? -ne 0 ] 
+    then
+      echo "there is an error while $1"
+    else
+      echo "$1 is Done"
+    fi
+}
+
+system_detail()
+{
+    Header "System Details are"
+    echo "Username: $(whoami)"
+    echo "Private IP: $(hostname -i)"
+    echo "uptime: $(uptime)"
+    echo "date: $(date)"
+    check_status "Printing System Details"
+}
+
+configure_Apache()
+{
+    Header "Configuring Apache webserver"
+    sudo $pkg_manager install httpd -y
+    sudo systemctl start httpd
+    sudo systemctl enable httpd
+    read -p "Enter Content to add in index.html file:" Content
+    sudo touch /var/www/html/index.html
+    sudo chmod o+w /var/www/html/index.html
+    sudo echo "$Content" > /var/www/html/index.html
+    check_status "Configuring Apache Webserver"
+}
+
+testing()
+{
+    Header "Installing and Configuring Apache webserver is Completed"
+    echo "You can access it through http://$(curl -s ifconfig.me)"
+}
+
+Check_os_type
+system_detail
+configure_Apache
+testing
