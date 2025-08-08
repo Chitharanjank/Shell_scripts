@@ -5,7 +5,7 @@
 
 This Bash script automates the process of **printing server details** and **installing & configuring the Apache webserver** on Linux systems (supports RHEL/CentOS-based and Ubuntu-based distros).
 
-## 📌 Features
+## Features
 
 * Detects OS type (Linux with `yum` or Ubuntu with `apt`)
 * Prints basic system details:
@@ -33,7 +33,7 @@ This Bash script automates the process of **printing server details** and **inst
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/<your-username>/<your-repo>.git
+   git clone https://github.com/Chitharanjank/<your-repo>.git
    cd <your-repo>
    ```
 
