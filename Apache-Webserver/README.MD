@@ -33,7 +33,7 @@ This Bash script automates the process of **printing server details** and **inst
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/Chitharanjank/Shell-scripts.git
+   git clone https://github.com/Chitharanjank/Shell_scripts.git
    cd Shell-scripts/
    ```
 
