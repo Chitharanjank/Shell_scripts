@@ -1,67 +1,77 @@
 #!/bin/bash
 
 ### This script will print server details & Configure Apache webserver
-Header()
-{
-   echo "====================================="
-   echo " $1 "
-   echo "====================================="
+
+Header() {
+    echo "====================================="
+    echo " $1 "
+    echo "====================================="
 }
 
-Check_os_type()
-{
+Check_os_type() {
     Header "Checking OS Type"
-      OS=$(cat /etc/os-release | grep -w NAME | awk -F= '{print $2}' | tr -d '"')
-    if [ os==Linux ]
-    then 
-      echo "OS Type is Linux"
-      pkg_manager=yum
-    elif [ os==Ubuntu ]
-    then 
-      echo "OS Type is Ubuntu"
-      pkg_manager=apt
-    fi
-}
-
-check_status()
-{
-    if [ $? -ne 0 ] 
-    then
-      echo "there is an error while $1"
+    OS=$(grep -w NAME /etc/os-release | awk -F= '{print $2}' | tr -d '"')
+    
+    if [[ "$OS" == "Ubuntu" ]]; then
+        echo "OS Type is Ubuntu"
+        pkg_manager="apt"
+        apache_pkg="apache2"
+    elif [[ "$OS" == "CentOS Linux" || "$OS" == "Red Hat Enterprise Linux" || "$OS" == "Amazon Linux" ]]; then
+        echo "OS Type is RHEL/CentOS/Amazon Linux"
+        pkg_manager="yum"
+        apache_pkg="httpd"
     else
-      echo "$1 is Done"
+        echo "Unsupported OS: $OS"
+        exit 1
     fi
 }
 
-system_detail()
-{
-    Header "System Details are"
+check_status() {
+    if [ $? -ne 0 ]; then
+        echo "There was an error while $1"
+        exit 1
+    else
+        echo "$1 is Done"
+    fi
+}
+
+system_detail() {
+    Header "System Details"
     echo "Username: $(whoami)"
-    echo "Private IP: $(hostname -i)"
-    echo "uptime: $(uptime)"
-    echo "date: $(date)"
+    echo "Private IP: $(hostname -I | awk '{print $1}')"
+    echo "Uptime: $(uptime -p)"
+    echo "Date: $(date)"
     check_status "Printing System Details"
 }
 
-configure_Apache()
-{
-    Header "Configuring Apache webserver"
-    sudo $pkg_manager install httpd -y
-    sudo systemctl start httpd
-    sudo systemctl enable httpd
-    read -p "Enter Content to add in index.html file:" Content
-    sudo touch /var/www/html/index.html
-    sudo chmod o+w /var/www/html/index.html
-    sudo echo "$Content" > /var/www/html/index.html
-    check_status "Configuring Apache Webserver"
+configure_Apache() {
+    Header "Configuring Apache Webserver"
+    
+    # Update package list if using apt
+    if [[ "$pkg_manager" == "apt" ]]; then
+        sudo apt update -y
+    fi
+    
+    sudo $pkg_manager install $apache_pkg -y
+    check_status "Installing Apache"
+    
+    sudo systemctl start $apache_pkg
+    check_status "Starting Apache"
+    
+    sudo systemctl enable $apache_pkg
+    check_status "Enabling Apache on boot"
+    
+    read -p "Enter content to add in index.html file: " Content
+    echo "$Content" | sudo tee /var/www/html/index.html > /dev/null
+    check_status "Creating index.html with your content"
 }
 
-testing()
-{
-    Header "Installing and Configuring Apache webserver is Completed"
-    echo "You can access it through http://$(curl -s ifconfig.me)"
+testing() {
+    Header "Apache Webserver Setup Completed"
+    echo "You can access it through: http://$(curl -s ifconfig.me)"
 }
 
+# Script Execution Flow
 Check_os_type
 system_detail
 configure_Apache
